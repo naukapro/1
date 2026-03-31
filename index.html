@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Научное сообщество лицея</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; color: #1e293b; background-color: #fefefe; line-height: 1.5; scroll-behavior: smooth; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+        
+        .admin-bar { background: #1e293b; color: white; padding: 8px 20px; display: none; justify-content: space-between; align-items: center; font-size: 14px; position: sticky; top: 0; z-index: 1000; }
+        .admin-bar.active { display: flex; }
+        .admin-btn { background: #2b6e9e; color: white; border: none; padding: 6px 16px; border-radius: 20px; cursor: pointer; margin-left: 10px; }
+        .admin-btn-danger { background: #dc2626; }
+        .admin-panel { display: none; background: #f1f5f9; padding: 20px; border-bottom: 3px solid #2b6e9e; }
+        .admin-panel.active { display: block; }
+        .admin-section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .edit-textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 10px; font-family: inherit; min-height: 100px; }
+        .save-btn { background: #22c55e; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+        
+        .login-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .login-modal.active { display: flex; }
+        .login-card { background: white; padding: 40px; border-radius: 24px; width: 340px; text-align: center; }
+        .login-card input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 8px; }
+        .login-card button { width: 100%; margin-top: 15px; }
+        .login-error { color: #dc2626; font-size: 14px; margin-top: 10px; display: none; }
+        
+        .footer-admin-link { margin-top: 20px; padding-top: 20px; border-top: 1px solid #2d4a6e; text-align: center; }
+        .footer-admin-link a { color: #90b4d4; text-decoration: none; font-size: 13px; cursor: pointer; }
+        
+        header { background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.03); position: sticky; top: 0; z-index: 100; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; flex-wrap: wrap; }
+        .logo { font-size: 1.4rem; font-weight: 700; background: linear-gradient(135deg, #1e3c72, #2b4c7c); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo span { font-size: 0.85rem; font-weight: 400; color: #5b6e8c; display: block; margin-top: 4px; }
+        .nav-links { display: flex; gap: 28px; list-style: none; flex-wrap: wrap; }
+        .nav-links a { text-decoration: none; font-weight: 500; color: #334155; }
+        .nav-links a:hover { color: #2b6e9e; }
+        
+        .btn-primary { background-color: #1e4a76; color: white; padding: 10px 24px; border-radius: 40px; text-decoration: none; font-weight: 600; display: inline-block; cursor: pointer; border: none; }
+        .btn-outline { border: 2px solid #1e4a76; background: transparent; color: #1e4a76; padding: 8px 22px; border-radius: 40px; font-weight: 600; text-decoration: none; }
+        
+        .hero { padding: 80px 0 60px; background: linear-gradient(120deg, #eef5ff 0%, #ffffff 70%); }
+        .hero-grid { display: flex; align-items: center; gap: 40px; flex-wrap: wrap; }
+        .hero-text { flex: 1; }
+        .hero-text h1 { font-size: 3rem; font-weight: 800; line-height: 1.2; color: #0f2b3d; margin-bottom: 20px; }
+        .hero-text p { font-size: 1.2rem; color: #334155; margin-bottom: 32px; }
+        .hero-stats { display: flex; gap: 32px; margin-top: 20px; }
+        .stat-number { font-size: 1.8rem; font-weight: 800; color: #1e4a76; }
+        
+        section { padding: 70px 0; border-bottom: 1px solid #eef2f6; }
+        .section-title { font-size: 2rem; font-weight: 700; margin-bottom: 48px; text-align: center; color: #0f2b3d; }
+        .section-title:after { content: ''; display: block; width: 70px; height: 4px; background: #2b6e9e; margin: 12px auto 0; border-radius: 4px; }
+        
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 32px; }
+        .card { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid #edf2f7; text-align: center; }
+        .card-icon { font-size: 2.5rem; color: #2b6e9e; margin-bottom: 16px; }
+        
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 28px; }
+        .gallery-item { background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.08); cursor: pointer; }
+        .gallery-img { width: 100%; height: 220px; object-fit: cover; background: #e2e8f0; }
+        .gallery-placeholder { background: #e2e8f0; height: 220px; display: flex; align-items: center; justify-content: center; }
+        .gallery-caption { padding: 16px 20px; font-weight: 500; }
+        
+        .teacher-photo { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; margin: 0 auto 16px; border: 4px solid #e2e8f0; display: block; }
+        .teacher-photo-placeholder { width: 140px; height: 140px; border-radius: 50%; background: linear-gradient(135deg, #cbd5e1, #94a3b8); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white; }
+        .teacher-category { display: inline-block; background: #eef2ff; color: #1e4a76; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 10px; }
+        
+        .calendar-accordion { max-width: 800px; margin: 0 auto; }
+        .month-item { margin-bottom: 16px; border-radius: 20px; border: 1px solid #e2e8f0; overflow: hidden; }
+        .month-header { background: #f8fafc; padding: 16px 24px; font-weight: 700; font-size: 1.3rem; cursor: pointer; display: flex; justify-content: space-between; }
+        .month-content { padding: 0 24px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .month-content.active { padding: 20px 24px; max-height: 400px; }
+        
+        .knowledge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .knowledge-card { background: #f8fafc; border-radius: 28px; padding: 32px; }
+        
+        .faq-item { border-bottom: 1px solid #e2e8f0; padding: 18px 0; }
+        .faq-question { font-weight: 700; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: space-between; }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; color: #475569; }
+        .faq-answer.show { max-height: 200px; padding-top: 12px; }
+        
+        .news-grid { display: flex; flex-direction: column; gap: 20px; }
+        .news-card { background: #f8fafc; border-radius: 20px; padding: 24px; border-left: 4px solid #2b6e9e; }
+        .news-date { color: #2b6e9e; font-size: 0.85rem; margin-bottom: 8px; }
+        .news-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+        
+        .contact-row { display: flex; flex-wrap: wrap; gap: 40px; }
+        .contact-info, .contact-form { flex: 1; }
+        .contact-form { background: #f9fbfd; padding: 32px; border-radius: 32px; }
+        input, textarea { width: 100%; padding: 14px 18px; border: 1px solid #cbd5e1; border-radius: 28px; font-family: inherit; margin-bottom: 12px; }
+        
+        footer { background: #0f2b3d; color: #cbd5e6; padding: 40px 0 30px; text-align: center; }
+        
+        @media (max-width: 768px) { .knowledge-grid { grid-template-columns: 1fr; } .teacher-photo { width: 100px; height: 100px; } }
+    </style>
+</head>
+<body>
+
+<div id="loginModal" class="login-modal">
+    <div class="login-card">
+        <h3><i class="fas fa-shield-alt"></i> Вход для администратора</h3>
+        <input type="text" id="adminLogin" placeholder="Логин">
+        <input type="password" id="adminPassword" placeholder="Пароль">
+        <button onclick="checkLogin()" class="btn-primary">Войти</button>
+        <div id="loginError" class="login-error">Неверный логин или пароль</div>
+    </div>
+</div>
+
+<div id="adminBar" class="admin-bar">
+    <span><i class="fas fa-shield-alt"></i> Режим администратора</span>
+    <div>
+        <button onclick="togglePanel()" class="admin-btn"><i class="fas fa-edit"></i> Редактировать</button>
+        <button onclick="logout()" class="admin-btn admin-btn-danger"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+    </div>
+</div>
+
+<div id="adminPanel" class="admin-panel">
+    <div class="container">
+        <h2 style="margin-bottom: 20px;">Панель управления</h2>
+        
+        <div class="admin-section">
+            <h3>📝 Описание</h3>
+            <textarea id="editAbout" class="edit-textarea" rows="4"></textarea>
+            <button onclick="saveAbout()" class="save-btn">Сохранить</button>
+        </div>
+        
+        <div class="admin-section">
+            <h3>🏆 Достижения (Заголовок|Описание)</h3>
+            <textarea id="editAchievements" class="edit-textarea" rows="6"></textarea>
+            <button onclick="saveAchievements()" class="save-btn">Сохранить</button>
+        </div>
+        
+        <div class="admin-section">
+            <h3>👩‍🏫 Педагоги (Имя|Должность|Категория|Фото.jpg)</h3>
+            <textarea id="editTeachers" class="edit-textarea" rows="8"></textarea>
+            <button onclick="saveTeachers()" class="save-btn">Сохранить</button>
+        </div>
+        
+        <div class="admin-section">
+            <h3>📅 События (Месяц:событие1;событие2)</h3>
+            <textarea id="editCalendar" class="edit-textarea" rows="6"></textarea>
+            <button onclick="saveCalendar()" class="save-btn">Сохранить</button>
+        </div>
+        
+        <div class="admin-section">
+            <h3>📚 База знаний (левый и правый блок)</h3>
+            <textarea id="editKnowledgeLeft" class="edit-textarea" rows="6"></textarea>
+            <textarea id="editKnowledgeRight" class="edit-textarea" rows="6"></textarea>
+            <button onclick="saveKnowledge()" class="save-btn">Сохранить</button>
+        </div>
+        
+        <div class="admin-section">
+            <h3>❓ FAQ (Вопрос|Ответ)</h3>
+            <textarea id="editFaq" class="edit-textarea" rows="6"></textarea>
+            <button onclick="saveFaq()" class="save-btn">Сохранить</button>
+        </div>
+        
+        <div class="admin-section">
+            <h3>🖼️ Галерея (путь|подпись)</h3>
+            <textarea id="editGallery" class="edit-textarea" rows="6" placeholder="images/photo.jpg|Описание фото"></textarea>
+            <button onclick="saveGallery()" class="save-btn">Сохранить</button>
+            <p style="font-size:12px; margin-top:10px;">💡 Фото кладите в папку images/</p>
+        </div>
+        
+        <div class="admin-section">
+            <h3>📰 Новости (дата|заголовок|текст)</h3>
+            <textarea id="editNews" class="edit-textarea" rows="6"></textarea>
+            <button onclick="saveNews()" class="save-btn">Сохранить</button>
+        </div>
+        
+        <div class="admin-section">
+            <h3>🔐 Смена пароля</h3>
+            <input type="password" id="newPassword" placeholder="Новый пароль">
+            <button onclick="changePassword()" class="save-btn">Сменить пароль</button>
+            <p style="font-size:12px; margin-top:10px; color:#666;">Текущий пароль: admin123</p>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="container">
+        <div class="navbar">
+            <div class="logo">
+                Научное сообщество лицея
+                <span>МБОУ "Многопрофильный лицей "Здоровое поколение" с. Усады</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#about">О нас</a></li>
+                <li><a href="#achievements">Достижения</a></li>
+                <li><a href="#gallery">Галерея</a></li>
+                <li><a href="#teachers">Педагоги</a></li>
+                <li><a href="#calendar">Конкурсы</a></li>
+                <li><a href="#knowledge">База знаний</a></li>
+                <li><a href="#news">Новости</a></li>
+                <li><a href="#contacts">Контакты</a></li>
+            </ul>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="container hero-grid">
+            <div class="hero-text">
+                <h1>Исследуй. Открывай. <br> Вдохновляй.</h1>
+                <p id="heroDesc"></p>
+                <a href="#knowledge" class="btn-primary">Как начать проект?</a>
+                <div class="hero-stats">
+                    <div><div class="stat-number">15+</div><div>Конкурсов</div></div>
+                    <div><div class="stat-number">80+</div><div>Призеров</div></div>
+                </div>
+            </div>
+            <div style="flex:1; text-align:center;">
+                <i class="fas fa-flask" style="font-size: 12rem; color:#e2e8f0;"></i>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="container">
+            <h2 class="section-title">О сообществе</h2>
+            <div id="aboutText" style="max-width:800px; margin:0 auto; text-align:center;"></div>
+        </div>
+    </section>
+
+    <section id="achievements">
+        <div class="container">
+            <h2 class="section-title">Достижения</h2>
+            <div id="achievementsGrid" class="cards-grid"></div>
+        </div>
+    </section>
+
+    <section id="gallery">
+        <div class="container">
+            <h2 class="section-title">Галерея</h2>
+            <div id="galleryGrid" class="gallery-grid"></div>
+        </div>
+    </section>
+
+    <section id="teachers">
+        <div class="container">
+            <h2 class="section-title">Наставники</h2>
+            <div id="teachersGrid" class="cards-grid"></div>
+        </div>
+    </section>
+
+    <section id="calendar">
+        <div class="container">
+            <h2 class="section-title">События 2025</h2>
+            <div id="calendarAccordion" class="calendar-accordion"></div>
+        </div>
+    </section>
+
+    <section id="knowledge">
+        <div class="container">
+            <h2 class="section-title">База знаний</h2>
+            <div id="knowledgeGrid" class="knowledge-grid"></div>
+        </div>
+    </section>
+
+    <section id="news">
+        <div class="container">
+            <h2 class="section-title">Новости</h2>
+            <div id="newsGrid" class="news-grid"></div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <h2 class="section-title">Часто задаваемые вопросы</h2>
+            <div id="faqGrid"></div>
+        </div>
+    </section>
+
+    <section id="contacts">
+        <div class="container">
+            <h2 class="section-title">Контакты</h2>
+            <div class="contact-row">
+                <div class="contact-info" id="contactInfo"></div>
+                <div class="contact-form">
+                    <h3>Задать вопрос</h3>
+                    <form id="feedbackForm">
+                        <input type="text" placeholder="Ваше имя" required>
+                        <input type="email" placeholder="Email" required>
+                        <textarea rows="3" placeholder="Ваш вопрос"></textarea>
+                        <button type="submit" class="btn-primary">Отправить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="container">
+        <p>© 2025 Научное сообщество лицея | МБОУ "Многопрофильный лицей "Здоровое поколение" с. Усады</p>
+        <div class="footer-admin-link">
+            <a onclick="openLogin()"><i class="fas fa-lock"></i> Вход для администраторов</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // ========== ПРОСТАЯ И РАБОЧАЯ ВЕРСИЯ ==========
+    
+    // Данные по умолчанию
+    let siteData = {
+        about: "<p>Научное сообщество МБОУ \"Многопрофильный лицей \"Здоровое поколение\" объединяет учеников, увлечённых физикой, химией, биологией, IT, математикой и гуманитарными науками. Мы помогаем делать первые шаги в науке, готовиться к конференциям и конкурсам, а также реализовывать собственные исследования под руководством опытных наставников.</p><p style='margin-top: 20px;'>✔️ Еженедельные семинары<br>✔️ Проектные мастерские<br>✔️ Партнёрство с вузами РТ<br>✔️ Подготовка к олимпиадам и конференциям</p>",
+        
+        achievements: [
+            {icon: "fa-trophy", title: "Всероссийский уровень", desc: "Победители и призеры ВсОШ, призеры регионального этапа по математике, биологии, информатике."},
+            {icon: "fa-chalkboard-user", title: "Научные конференции", desc: "Дипломанты республиканских конференций \"Шаг в будущее\", \"Ломоносов\", \"Первые шаги в науку\"."},
+            {icon: "fa-leaf", title: "Экологические проекты", desc: "Победа в республиканском конкурсе \"Зеленая планета\", реализация экологических программ."},
+            {icon: "fa-microchip", title: "IT и робототехника", desc: "Призовые места в хакатонах и конкурсах по программированию среди школ РТ."}
+        ],
+        
+        teachers: [
+            {name: "Захарова Марина Анатольевна", role: "Руководитель научного движения в лицее<br>Учитель математики высшей квалификационной категории", category: "Математика / Руководство", photo: "zaharova.jpg"},
+            {name: "Галавова Лилия Фаилевна", role: "Учитель химии первой квалификационной категории", category: "Химия", photo: "galavova.jpg"},
+            {name: "Гимадеева Гуля Рахимьяновна", role: "Учитель биологии высшей квалификационной категории", category: "Биология / Экология", photo: "gimadeeva.jpg"},
+            {name: "Ризванов Равиль Гамирович", role: "Учитель информатики высшей квалификационной категории", category: "Информатика / IT-проекты", photo: "rizvanov.jpg"}
+        ],
+        
+        calendar: [
+            {month: "Февраль", events: ["10-15 фев, Отборочный тур \"Юный исследователь\"", "20 фев, День науки в лицее: стендовая сессия"]},
+            {month: "Март", events: ["5-20 мар, Республиканский этап \"Шаг в будущее\"", "25 мар, Мастер-класс \"Как оформить научную статью\""]},
+            {month: "Апрель", events: ["12 апр, Научно-практическая конференция \"Старт в науку\"", "20-28 апр, Открытый конкурс проектов по робототехнике"]},
+            {month: "Май", events: ["15-18 мая, Республиканский фестиваль науки", "25 мая, Подведение итогов года"]}
+        ],
+        
+        knowledgeLeft: "<h3><i class='fas fa-rocket'></i> Как начать проектную деятельность?</h3><ul><li>🔍 <strong>Выбор темы</strong> — найди область, которая тебя увлекает</li><li>📚 <strong>Изучение литературы</strong> — от научных статей до патентов</li><li>🧪 <strong>Планирование</strong> — сформулируй гипотезу, задачи и методы</li><li>👩‍🏫 <strong>Наставник</strong> — обратись к любому педагогу</li><li>📝 <strong>Оформление</strong> — структура: введение, обзор, практическая часть, выводы</li></ul><a href='#' class='btn-outline' style='margin-top: 20px; display: inline-block;'>Скачать чек-лист</a>",
+        
+        knowledgeRight: "<h3><i class='fas fa-brain'></i> Теоретические основы</h3><p><strong>Методология исследования:</strong> от наблюдения до эксперимента.</p><p><strong>Структура проектной работы:</strong></p><ul><li>Титульный лист</li><li>Введение (актуальность, цель, задачи)</li><li>Основная часть</li><li>Заключение</li><li>Список литературы</li></ul><p>⭐️ В сообществе проходят лекции по академическому письму.</p>",
+        
+        faq: [
+            {q: "Могу ли я участвовать, если у меня нет готового проекта?", a: "Конечно! Мы помогаем на всех этапах: от генерации идеи до защиты."},
+            {q: "Нужно ли платить за участие?", a: "Все активности сообщества бесплатны для учеников лицея."},
+            {q: "Как часто проходят встречи с наставниками?", a: "Индивидуальные консультации по записи, общие собрания — раз в две недели."}
+        ],
+        
+        gallery: [
+            {img: "", caption: "Научная конференция \"Шаг в будущее\"", icon: "fa-microscope"},
+            {img: "", caption: "Практикум по химии", icon: "fa-flask"},
+            {img: "", caption: "Соревнования по робототехнике", icon: "fa-robot"},
+            {img: "", caption: "Экологическая экспедиция", icon: "fa-leaf"},
+            {img: "", caption: "Защита проектов", icon: "fa-chalkboard"},
+            {img: "", caption: "IT-хакатон", icon: "fa-laptop-code"}
+        ],
+        
+        news: [
+            {date: "15 марта 2025", title: "Победа в республиканской конференции", text: "Ученики 10 класса стали призерами конференции \"Шаг в будущее\" с проектом по биотехнологии."},
+            {date: "1 марта 2025", title: "Открыт набор в новые секции", text: "Приглашаем учеников 7-8 классов в секции по робототехнике и программированию."}
+        ],
+        
+        contacts: "<p><i class='fas fa-map-marker-alt'></i> <strong>МБОУ \"Многопрофильный лицей \"Здоровое поколение\"</strong><br>Республика Татарстан, Лаишевский район, с. Усады</p><p><i class='fas fa-envelope'></i> nauka@usady-lyceum.ru</p><p><i class='fab fa-vk'></i> vk.com/nauka_lyceum_usady</p><p><i class='fab fa-telegram'></i> @nauka_usady_bot</p><div style='margin-top: 30px;'><h4>Руководитель сообщества:</h4><p><strong>Захарова Марина Анатольевна</strong><br>Прием по средам с 15:00 до 17:00 (каб. 310)</p></div>"
+    };
+    
+    let isAdmin = false;
+    let adminPassword = localStorage.getItem('adminPassword') || "admin123";
+    
+    function loadData() {
+        const saved = localStorage.getItem('siteData');
+        if (saved) {
+            siteData = JSON.parse(saved);
+        }
+        renderAll();
+    }
+    
+    function saveData() {
+        localStorage.setItem('siteData', JSON.stringify(siteData));
+    }
+    
+    function checkLogin() {
+        const login = document.getElementById('adminLogin').value;
+        const password = document.getElementById('adminPassword').value;
+        
+        if (login === 'admin' && password === adminPassword) {
+            isAdmin = true;
+            document.getElementById('loginModal').classList.remove('active');
+            document.getElementById('adminBar').classList.add('active');
+            renderAll();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+        }
+    }
+    
+    function changePassword() {
+        const newPwd = document.getElementById('newPassword').value;
+        if (newPwd && newPwd.length >= 4) {
+            adminPassword = newPwd;
+            localStorage.setItem('adminPassword', adminPassword);
+            alert('Пароль изменен! Новый пароль: ' + newPwd);
+            document.getElementById('newPassword').value = '';
+        } else {
+            alert('Пароль должен быть минимум 4 символа');
+        }
+    }
+    
+    function logout() {
+        isAdmin = false;
+        document.getElementById('adminBar').classList.remove('active');
+        document.getElementById('adminPanel').classList.remove('active');
+    }
+    
+    function togglePanel() {
+        const panel = document.getElementById('adminPanel');
+        panel.classList.toggle('active');
+        if (panel.classList.contains('active')) {
+            document.getElementById('editAbout').value = siteData.about;
+            document.getElementById('editAchievements').value = siteData.achievements.map(a => `${a.title}|${a.desc}`).join('\n');
+            document.getElementById('editTeachers').value = siteData.teachers.map(t => `${t.name}|${t.role}|${t.category}|${t.photo}`).join('\n');
+            document.getElementById('editCalendar').value = siteData.calendar.map(c => `${c.month}:${c.events.join(';')}`).join('\n');
+            document.getElementById('editKnowledgeLeft').value = siteData.knowledgeLeft;
+            document.getElementById('editKnowledgeRight').value = siteData.knowledgeRight;
+            document.getElementById('editFaq').value = siteData.faq.map(f => `${f.q}|${f.a}`).join('\n');
+            document.getElementById('editGallery').value = siteData.gallery.map(g => `${g.img}|${g.caption}`).join('\n');
+            document.getElementById('editNews').value = siteData.news.map(n => `${n.date}|${n.title}|${n.text}`).join('\n');
+        }
+    }
+    
+    function renderAll() {
+        document.getElementById('aboutText').innerHTML = siteData.about;
+        document.getElementById('heroDesc').innerHTML = siteData.about.replace(/<[^>]*>/g, '').substring(0, 120) + '...';
+        document.getElementById('contactInfo').innerHTML = siteData.contacts;
+        
+        // Достижения
+        document.getElementById('achievementsGrid').innerHTML = siteData.achievements.map(a => `
+            <div class="card"><div class="card-icon"><i class="fas ${a.icon}"></i></div><h3>${a.title}</h3><p>${a.desc}</p></div>
+        `).join('');
+        
+        // Педагоги
+        document.getElementById('teachersGrid').innerHTML = siteData.teachers.map(t => {
+            const photoHtml = t.photo ? `<img src="images/${t.photo}" class="teacher-photo" onerror="this.outerHTML='<div class=\'teacher-photo-placeholder\'><i class=\'fas fa-user-graduate\'></i></div>'">` : `<div class="teacher-photo-placeholder"><i class="fas fa-user-graduate"></i></div>`;
+            return `<div class="card">${photoHtml}<h3>${t.name}</h3><p>${t.role}</p><span class="teacher-category">${t.category}</span></div>`;
+        }).join('');
+        
+        // Календарь
+        document.getElementById('calendarAccordion').innerHTML = siteData.calendar.map((c, i) => `
+            <div class="month-item"><div class="month-header" onclick="toggleMonth(${i})">${c.month} <i class="fas fa-chevron-down"></i></div>
+            <div class="month-content" id="month-${i}"><ul>${c.events.map(e => `<li>${e}</li>`).join('')}</ul></div></div>
+        `).join('');
+        
+        // База знаний
+        document.getElementById('knowledgeGrid').innerHTML = `<div class="knowledge-card">${siteData.knowledgeLeft}</div><div class="knowledge-card">${siteData.knowledgeRight}</div>`;
+        
+        // FAQ
+        document.getElementById('faqGrid').innerHTML = siteData.faq.map((f, i) => `
+            <div class="faq-item"><div class="faq-question" onclick="toggleFaq(${i})">${f.q} <i class="fas fa-plus"></i></div>
+            <div class="faq-answer" id="faq-${i}">${f.a}</div></div>
+        `).join('');
+        
+        // Галерея
+        document.getElementById('galleryGrid').innerHTML = siteData.gallery.map((g, i) => `
+            <div class="gallery-item" onclick="openImage(${i})">
+                ${g.img ? `<img src="${g.img}" class="gallery-img" onerror="this.outerHTML='<div class=\'gallery-placeholder\'><i class=\'fas ${g.icon}\' style=\'font-size:4rem;color:#94a3b8;\'></i></div>'">` : `<div class="gallery-placeholder"><i class="fas ${g.icon}" style="font-size:4rem;color:#94a3b8;"></i></div>`}
+                <div class="gallery-caption">${g.caption}</div>
+            </div>
+        `).join('');
+        
+        // Новости
+        document.getElementById('newsGrid').innerHTML = siteData.news.map(n => `
+            <div class="news-card"><div class="news-date">${n.date}</div><div class="news-title">${n.title}</div><p>${n.text}</p></div>
+        `).join('');
+    }
+    
+    function toggleMonth(i) {
+        document.getElementById(`month-${i}`).classList.toggle('active');
+    }
+    
+    function toggleFaq(i) {
+        const a = document.getElementById(`faq-${i}`);
+        a.classList.toggle('show');
+        const icon = a.previousElementSibling.querySelector('i');
+        if (icon) {
+            if (a.classList.contains('show')) {
+                icon.classList.remove('fa-plus');
+                icon.classList.add('fa-minus');
+            } else {
+                icon.classList.remove('fa-minus');
+                icon.classList.add('fa-plus');
+            }
+        }
+    }
+    
+    function openImage(i) {
+        const img = siteData.gallery[i].img;
+        if (img) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:3000;display:flex;justify-content:center;align-items:center;cursor:pointer';
+            modal.onclick = () => modal.remove();
+            modal.innerHTML = `<div><img src="${img}" style="max-width:90vw;max-height:90vh;border-radius:12px;"><p style="color:white;text-align:center;margin-top:16px;">${siteData.gallery[i].caption}</p></div>`;
+            document.body.appendChild(modal);
+        }
+    }
+    
+    function saveAbout() { siteData.about = document.getElementById('editAbout').value; saveData(); renderAll(); alert('Сохранено!'); }
+    function saveAchievements() {
+        const lines = document.getElementById('editAchievements').value.split('\n').filter(l=>l.trim());
+        const icons = ['fa-trophy', 'fa-chalkboard-user', 'fa-leaf', 'fa-microchip', 'fa-flask', 'fa-book'];
+        siteData.achievements = lines.map((l, i) => {
+            const p = l.split('|');
+            return { icon: icons[i % icons.length], title: p[0] || 'Достижение', desc: p[1] || '' };
+        });
+        saveData(); renderAll(); alert('Сохранено!');
+    }
+    function saveTeachers() {
+        const lines = document.getElementById('editTeachers').value.split('\n').filter(l=>l.trim());
+        siteData.teachers = lines.map(l => {
+            const p = l.split('|');
+            return { name: p[0] || 'Педагог', role: p[1] || '', category: p[2] || '', photo: p[3] || '' };
+        });
+        saveData(); renderAll(); alert('Сохранено!');
+    }
+    function saveCalendar() {
+        const lines = document.getElementById('editCalendar').value.split('\n').filter(l=>l.trim());
+        siteData.calendar = lines.map(l => {
+            const [m, e] = l.split(':');
+            return { month: m || 'Месяц', events: e ? e.split(';').map(x=>x.trim()) : [] };
+        });
+        saveData(); renderAll(); alert('Сохранено!');
+    }
+    function saveKnowledge() {
+        siteData.knowledgeLeft = document.getElementById('editKnowledgeLeft').value;
+        siteData.knowledgeRight = document.getElementById('editKnowledgeRight').value;
+        saveData(); renderAll(); alert('Сохранено!');
+    }
+    function saveFaq() {
+        const lines = document.getElementById('editFaq').value.split('\n').filter(l=>l.trim());
+        siteData.faq = lines.map(l => {
+            const p = l.split('|');
+            return { q: p[0] || 'Вопрос', a: p[1] || 'Ответ' };
+        });
+        saveData(); renderAll(); alert('Сохранено!');
+    }
+    function saveGallery() {
+        const lines = document.getElementById('editGallery').value.split('\n').filter(l=>l.trim());
+        const icons = ['fa-microscope', 'fa-flask', 'fa-robot', 'fa-leaf', 'fa-chalkboard', 'fa-laptop-code'];
+        siteData.gallery = lines.map((l, i) => {
+            const p = l.split('|');
+            return { img: p[0] || '', caption: p[1] || 'Фото', icon: icons[i % icons.length] };
+        });
+        saveData(); renderAll(); alert('Сохранено!');
+    }
+    function saveNews() {
+        const lines = document.getElementById('editNews').value.split('\n').filter(l=>l.trim());
+        siteData.news = lines.map(l => {
+            const p = l.split('|');
+            return { date: p[0] || 'Дата', title: p[1] || 'Новость', text: p[2] || '' };
+        });
+        saveData(); renderAll(); alert('Сохранено!');
+    }
+    
+    function openLogin() { document.getElementById('loginModal').classList.add('active'); }
+    
+    document.getElementById('feedbackForm')?.addEventListener('submit', function(e) { e.preventDefault(); alert('Спасибо! Мы ответим.'); this.reset(); });
+    
+    window.toggleMonth = toggleMonth;
+    window.toggleFaq = toggleFaq;
+    window.openImage = openImage;
+    window.openLogin = openLogin;
+    window.checkLogin = checkLogin;
+    window.logout = logout;
+    window.togglePanel = togglePanel;
+    window.saveAbout = saveAbout;
+    window.saveAchievements = saveAchievements;
+    window.saveTeachers = saveTeachers;
+    window.saveCalendar = saveCalendar;
+    window.saveKnowledge = saveKnowledge;
+    window.saveFaq = saveFaq;
+    window.saveGallery = saveGallery;
+    window.saveNews = saveNews;
+    window.changePassword = changePassword;
+    
+    loadData();
+</script>
+</body>
+</html>
