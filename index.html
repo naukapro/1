@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Научное сообщество лицея</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            background-color: #fefefe;
+            line-height: 1.5;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Admin Bar */
+        .admin-bar {
+            background: #1e293b;
+            color: white;
+            padding: 8px 20px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .admin-bar.active { display: flex; }
+        .admin-btn {
+            background: #2b6e9e;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .admin-btn-danger { background: #dc2626; }
+        
+        /* Admin Modal (поверх всего) */
+        .admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .admin-modal.active { display: flex; }
+        .admin-modal-content {
+            background: white;
+            width: 90%;
+            max-width: 1100px;
+            max-height: 90vh;
+            border-radius: 28px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        .admin-modal-header {
+            padding: 20px 28px;
+            background: linear-gradient(135deg, #1e3c72, #2b4c7c);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .admin-modal-header h2 { font-size: 1.5rem; }
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+        .close-modal:hover { opacity: 0.8; }
+        .admin-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+            background: #f8fafc;
+        }
+        .admin-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .admin-tab {
+            padding: 8px 20px;
+            background: white;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #475569;
+            transition: all 0.2s;
+        }
+        .admin-tab.active {
+            background: #1e4a76;
+            color: white;
+        }
+        .admin-tab-content {
+            display: none;
+        }
+        .admin-tab-content.active {
+            display: block;
+        }
+        
+        /* Admin Cards */
+        .admin-cards-grid {
+            display: grid;
+            gap: 20px;
+        }
+        .admin-teacher-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .teacher-photo-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #e2e8f0;
+        }
+        .teacher-photo-placeholder-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+        }
+        .teacher-fields {
+            flex: 1;
+            min-width: 200px;
+        }
+        .teacher-fields input, .teacher-fields textarea {
+            width: 100%;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-family: inherit;
+        }
+        .teacher-fields textarea { resize: vertical; }
+        .photo-upload-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .delete-card-btn {
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            align-self: center;
+        }
+        
+        .admin-events-grid {
+            display: grid;
+            gap: 16px;
+        }
+        .admin-event-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+        }
+        .admin-event-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .admin-event-card input, .admin-event-card select, .admin-event-card textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        .save-main-btn {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .add-new-btn {
+            background: #2b6e9e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        /* Login Modal */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-modal.active { display: flex; }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            width: 340px;
+            text-align: center;
+        }
+        .login-card input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+        }
+        .login-error {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .footer-admin-link {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #2d4a6e;
+            text-align: center;
+        }
+        .footer-admin-link a {
+            color: #90b4d4;
+            text-decoration: none;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        /* Main Styles */
+        header {
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1e3c72, #2b4c7c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .logo span {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: #5b6e8c;
+            display: block;
+        }
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            text-decoration: none;
+            font-weight: 500;
+            color: #334155;
+        }
+        .nav-links a:hover { color: #2b6e9e; }
+        
+        .btn-primary {
+            background-color: #1e4a76;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .hero {
+            padding: 80px 0 60px;
+            background: linear-gradient(120deg, #eef5ff 0%, #ffffff 70%);
+        }
+        .hero-grid {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        .hero-text { flex: 1; }
+        .hero-text h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #0f2b3d;
+            margin-bottom: 20px;
+        }
+        .hero-stats {
+            display: flex;
+            gap: 32px;
+            margin-top: 20px;
+        }
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e4a76;
+        }
+        
+        section {
+            padding: 70px 0;
+            border-bottom: 1px solid #eef2f6;
+        }
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 48px;
+            text-align: center;
+            color: #0f2b3d;
+        }
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 70px;
+            height: 4px;
+            background: #2b6e9e;
+            margin: 12px auto 0;
+            border-radius: 4px;
+        }
+        
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+        }
+        .event-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 1px solid #eef2f6;
+        }
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+        .event-header {
+            padding: 20px 20px 12px;
+            border-bottom: 1px solid #eef2f6;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .event-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f2b3d;
+        }
+        .event-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-olympiad { background: #fef3c7; color: #b45309; }
+        .badge-conference { background: #dcfce7; color: #15803d; }
+        .event-month {
+            font-size: 0.85rem;
+            color: #2b6e9e;
+            font-weight: 500;
+        }
+        .event-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+            background: #fafcff;
+        }
+        .event-details.active {
+            max-height: 500px;
+            padding: 20px;
+        }
+        .detail-row {
+            display: flex;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .detail-label {
+            width: 120px;
+            font-weight: 600;
+            color: #475569;
+        }
+        .detail-value {
+            flex: 1;
+            color: #1e293b;
+        }
+        .countdown {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 12px;
+            text-align: center;
+            font-weight: 600;
+            color: #1e4a76;
+        }
+        .countdown.expired {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .event-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #2b6e9e;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 32px;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .card-icon { font-size: 2.5rem; color: #2b6e9e; margin-bottom: 16px; }
+        
+        .teacher-photo {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 16px;
+            border: 4px solid #e2e8f0;
+        }
+        .teacher-photo-placeholder {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+        }
+        .teacher-category {
+            display: inline-block;
+            background: #eef2ff;
+            color: #1e4a76;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+        
+        footer {
+            background: #0f2b3d;
+            color: #cbd5e6;
+            padding: 40px 0 30px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .events-grid { grid-template-columns: 1fr; }
+            .admin-teacher-card { flex-direction: column; align-items: center; text-align: center; }
+            .detail-label { width: 100%; margin-bottom: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Login Modal -->
+<div id="loginModal" class="login-modal">
+    <div class="login-card">
+        <h3><i class="fas fa-shield-alt"></i> Вход для администратора</h3>
+        <input type="text" id="adminLogin" placeholder="Логин">
+        <input type="password" id="adminPassword" placeholder="Пароль">
+        <button onclick="checkLogin()" class="btn-primary">Войти</button>
+        <div id="loginError" class="login-error">Неверный логин или пароль</div>
+    </div>
+</div>
+
+<!-- Admin Bar (верхняя панель) -->
+<div id="adminBar" class="admin-bar">
+    <span><i class="fas fa-shield-alt"></i> Режим администратора</span>
+    <div>
+        <button onclick="openAdminModal()" class="admin-btn"><i class="fas fa-edit"></i> Открыть панель управления</button>
+        <button onclick="logout()" class="admin-btn admin-btn-danger"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+    </div>
+</div>
+
+<!-- Admin Modal (отдельное окно поверх всего) -->
+<div id="adminModal" class="admin-modal">
+    <div class="admin-modal-content">
+        <div class="admin-modal-header">
+            <h2><i class="fas fa-cog"></i> Панель управления сайтом</h2>
+            <button class="close-modal" onclick="closeAdminModal()">&times;</button>
+        </div>
+        <div class="admin-modal-body">
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="switchTab('teachers')">👩‍🏫 Педагоги</button>
+                <button class="admin-tab" onclick="switchTab('events')">📅 Мероприятия</button>
+                <button class="admin-tab" onclick="switchTab('about')">📝 О нас</button>
+                <button class="admin-tab" onclick="switchTab('password')">🔐 Смена пароля</button>
+            </div>
+            
+            <!-- Педагоги -->
+            <div id="tab-teachers" class="admin-tab-content active">
+                <button onclick="addNewTeacher()" class="add-new-btn"><i class="fas fa-plus"></i> Добавить педагога</button>
+                <div id="adminTeachersList" class="admin-cards-grid"></div>
+                <button onclick="saveAllTeachers()" class="save-main-btn"><i class="fas fa-save"></i> Сохранить всех педагогов</button>
+            </div>
+            
+            <!-- Мероприятия -->
+            <div id="tab-events" class="admin-tab-content">
+                <button onclick="addNewEvent()" class="add-new-btn"><i class="fas fa-plus"></i> Добавить мероприятие</button>
+                <div id="adminEventsList" class="admin-events-grid"></div>
+                <button onclick="saveAllEvents()" class="save-main-btn"><i class="fas fa-save"></i> Сохранить все мероприятия</button>
+            </div>
+            
+            <!-- О нас -->
+            <div id="tab-about" class="admin-tab-content">
+                <label style="font-weight: 600;">Текст описания сообщества:</label>
+                <textarea id="editAbout" rows="8" style="width:100%; padding:12px; margin-top:10px; border-radius:16px; border:1px solid #cbd5e1;"></textarea>
+                <button onclick="saveAbout()" class="save-main-btn" style="margin-top:15px;"><i class="fas fa-save"></i> Сохранить описание</button>
+            </div>
+            
+            <!-- Смена пароля -->
+            <div id="tab-password" class="admin-tab-content">
+                <label style="font-weight: 600;">Новый пароль администратора:</label>
+                <input type="password" id="newPassword" placeholder="Введите новый пароль" style="width:100%; padding:12px; margin:10px 0; border-radius:12px; border:1px solid #cbd5e1;">
+                <button onclick="changePassword()" class="save-main-btn">Сменить пароль</button>
+                <p style="margin-top:15px; color:#666; font-size:13px;">Текущий пароль: 2026</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="container">
+        <div class="navbar">
+            <div class="logo">
+                Научное сообщество лицея
+                <span>МБОУ "Многопрофильный лицей "Здоровое поколение" с. Усады</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#about">О нас</a></li>
+                <li><a href="#teachers">Педагоги</a></li>
+                <li><a href="#events">Мероприятия</a></li>
+                <li><a href="#knowledge">База знаний</a></li>
+                <li><a href="#contacts">Контакты</a></li>
+            </ul>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="container hero-grid">
+            <div class="hero-text">
+                <h1>Исследуй. Открывай. <br> Вдохновляй.</h1>
+                <p id="heroDesc"></p>
+                <a href="#events" class="btn-primary">Участвовать в конкурсах</a>
+                <div class="hero-stats">
+                    <div><div class="stat-number">20+</div><div>Конкурсов в год</div></div>
+                    <div><div class="stat-number">100+</div><div>Призеров</div></div>
+                </div>
+            </div>
+            <div style="flex:1; text-align:center;">
+                <i class="fas fa-flask" style="font-size: 12rem; color:#e2e8f0;"></i>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="container">
+            <h2 class="section-title">О сообществе</h2>
+            <div id="aboutText" style="max-width:800px; margin:0 auto; text-align:center;"></div>
+        </div>
+    </section>
+
+    <section id="teachers">
+        <div class="container">
+            <h2 class="section-title">Наставники</h2>
+            <div id="teachersGrid" class="cards-grid"></div>
+        </div>
+    </section>
+
+    <section id="events">
+        <div class="container">
+            <h2 class="section-title">Конкурсы и олимпиады</h2>
+            <div id="eventsGrid" class="events-grid"></div>
+        </div>
+    </section>
+
+    <section id="knowledge">
+        <div class="container">
+            <h2 class="section-title">База знаний</h2>
+            <div id="knowledgeGrid" class="cards-grid"></div>
+        </div>
+    </section>
+
+    <section id="contacts">
+        <div class="container">
+            <h2 class="section-title">Контакты</h2>
+            <div id="contactInfo" style="text-align:center;"></div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="container">
+        <p>© 2025 Научное сообщество лицея | МБОУ "Многопрофильный лицей "Здоровое поколение" с. Усады</p>
+        <div class="footer-admin-link">
+            <a onclick="openLogin()"><i class="fas fa-lock"></i> Вход для администраторов</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // ========== ДАННЫЕ ==========
+    let events = [
+        { id: 1, month: "Октябрь", name: "Школьный этап ВСОШ", type: "olympiad", place: "МБОУ \"Многопрофильный лицей\"", classes: "5-11 классы", deadline: "2025-10-15", organizer: "Лицей, Министерство образования РТ", link: "#" },
+        { id: 2, month: "Ноябрь", name: "Межрегиональные олимпиады КФУ (Отборочный этап)", type: "olympiad", place: "online / КФУ г. Казань", classes: "8-11 классы", deadline: "2025-11-10", organizer: "КФУ, Министерство образования РТ", link: "#" },
+        { id: 3, month: "Декабрь", name: "Республиканская конференция «Шаг в будущее»", type: "conference", place: "г. Казань, КФУ", classes: "9-11 классы", deadline: "2025-12-01", organizer: "КФУ, Академия наук РТ", link: "#" },
+        { id: 4, month: "Январь", name: "Всероссийская олимпиада школьников (Муниципальный этап)", type: "olympiad", place: "г. Лаишево", classes: "7-11 классы", deadline: "2026-01-15", organizer: "Управление образования", link: "#" },
+        { id: 5, month: "Февраль", name: "Научно-практическая конференция «Первые шаги в науку»", type: "conference", place: "МБОУ \"Многопрофильный лицей\"", classes: "5-8 классы", deadline: "2026-02-10", organizer: "Лицей", link: "#" },
+        { id: 6, month: "Март", name: "Республиканский конкурс «Зеленая планета»", type: "conference", place: "г. Казань", classes: "5-11 классы", deadline: "2026-03-05", organizer: "Министерство экологии РТ", link: "#" },
+        { id: 7, month: "Апрель", name: "Открытый конкурс по робототехнике", type: "conference", place: "IT-парк, г. Казань", classes: "7-11 классы", deadline: "2026-04-10", organizer: "IT-парк, Лицей", link: "#" }
+    ];
+    
+    let teachers = [
+        { id: 1, name: "Захарова Марина Анатольевна", role: "Руководитель сообщества, учитель математики высшей квалификационной категории", category: "Математика / Руководство", photoData: null, photoUrl: "" },
+        { id: 2, name: "Галавова Лилия Фаилевна", role: "Учитель химии первой квалификационной категории", category: "Химия", photoData: null, photoUrl: "" },
+        { id: 3, name: "Гимадеева Гуля Рахимьяновна", role: "Учитель биологии высшей квалификационной категории", category: "Биология / Экология", photoData: null, photoUrl: "" },
+        { id: 4, name: "Ризванов Равиль Гамирович", role: "Учитель информатики высшей квалификационной категории", category: "Информатика / IT-проекты", photoData: null, photoUrl: "" }
+    ];
+    
+    let siteData = {
+        about: "<p>Научное сообщество МБОУ \"Многопрофильный лицей \"Здоровое поколение\" объединяет учеников, увлечённых физикой, химией, биологией, IT, математикой и гуманитарными науками. Мы помогаем делать первые шаги в науке, готовиться к конференциям и конкурсам, а также реализовывать собственные исследования под руководством опытных наставников.</p><p style='margin-top: 20px;'>✔️ Еженедельные семинары<br>✔️ Проектные мастерские<br>✔️ Партнёрство с вузами РТ<br>✔️ Подготовка к олимпиадам и конференциям</p>",
+        knowledgeLeft: { title: "🚀 Как начать проект?", content: "1. Выбери тему<br>2. Найди наставника<br>3. Изучи литературу<br>4. Оформи работу" },
+        knowledgeRight: { title: "📚 Полезные ресурсы", content: "• eLibrary.ru<br>• КиберЛенинка<br>• Google Академия" },
+        contacts: "<p><i class='fas fa-map-marker-alt'></i> Республика Татарстан, Лаишевский район, с. Усады</p><p><i class='fas fa-envelope'></i> nauka@usady-lyceum.ru</p><p><i class='fab fa-vk'></i> vk.com/nauka_lyceum</p><p><i class='fab fa-telegram'></i> @nauka_usady</p>"
+    };
+    
+    let isAdmin = false;
+    let adminPassword = localStorage.getItem('adminPassword') || "2026";
+    
+    // Функции для работы с фото
+    function readFileAsDataURL(file, callback) {
+        const reader = new FileReader();
+        reader.onload = (e) => callback(e.target.result);
+        reader.readAsDataURL(file);
+    }
+    
+    function loadData() {
+        const savedEvents = localStorage.getItem('events');
+        if (savedEvents) events = JSON.parse(savedEvents);
+        const savedTeachers = localStorage.getItem('teachers');
+        if (savedTeachers) teachers = JSON.parse(savedTeachers);
+        const savedSite = localStorage.getItem('siteData');
+        if (savedSite) siteData = JSON.parse(savedSite);
+        renderAll();
+    }
+    
+    function saveEvents() { localStorage.setItem('events', JSON.stringify(events)); }
+    function saveTeachers() { localStorage.setItem('teachers', JSON.stringify(teachers)); }
+    function saveSiteData() { localStorage.setItem('siteData', JSON.stringify(siteData)); }
+    
+    function checkLogin() {
+        const login = document.getElementById('adminLogin').value;
+        const password = document.getElementById('adminPassword').value;
+        if (login === 'admin' && password === adminPassword) {
+            isAdmin = true;
+            document.getElementById('loginModal').classList.remove('active');
+            document.getElementById('adminBar').classList.add('active');
+            renderAll();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+        }
+    }
+    
+    function logout() {
+        isAdmin = false;
+        document.getElementById('adminBar').classList.remove('active');
+        closeAdminModal();
+    }
+    
+    function openLogin() { document.getElementById('loginModal').classList.add('active'); }
+    function openAdminModal() { document.getElementById('adminModal').classList.add('active'); renderAdminTeachers(); renderAdminEvents(); }
+    function closeAdminModal() { document.getElementById('adminModal').classList.remove('active'); }
+    
+    function switchTab(tab) {
+        document.querySelectorAll('.admin-tab').forEach((t, i) => {
+            t.classList.toggle('active', i === (tab === 'teachers' ? 0 : tab === 'events' ? 1 : tab === 'about' ? 2 : 3));
+        });
+        document.getElementById('tab-teachers').classList.toggle('active', tab === 'teachers');
+        document.getElementById('tab-events').classList.toggle('active', tab === 'events');
+        document.getElementById('tab-about').classList.toggle('active', tab === 'about');
+        document.getElementById('tab-password').classList.toggle('active', tab === 'password');
+        if (tab === 'teachers') renderAdminTeachers();
+        if (tab === 'events') renderAdminEvents();
+        if (tab === 'about') document.getElementById('editAbout').value = siteData.about;
+    }
+    
+    // Админка педагогов
+    function renderAdminTeachers() {
+        const container = document.getElementById('adminTeachersList');
+        container.innerHTML = teachers.map((t, idx) => `
+            <div class="admin-teacher-card" data-idx="${idx}">
+                <div>
+                    ${t.photoData ? `<img src="${t.photoData}" class="teacher-photo-preview" style="width:100px;height:100px;border-radius:50%;object-fit:cover;">` : 
+                                   `<div class="teacher-photo-placeholder-preview"><i class="fas fa-user-graduate"></i></div>`}
+                    <div style="margin-top:8px;">
+                        <input type="file" id="photo_upload_${idx}" accept="image/*" style="display:none;" onchange="uploadTeacherPhoto(${idx}, this)">
+                        <button onclick="document.getElementById('photo_upload_${idx}').click()" class="photo-upload-btn"><i class="fas fa-camera"></i> Загрузить фото</button>
+                    </div>
+                </div>
+                <div class="teacher-fields">
+                    <input type="text" id="teacher_name_${idx}" value="${t.name.replace(/"/g, '&quot;')}" placeholder="ФИО педагога">
+                    <textarea id="teacher_role_${idx}" rows="2" placeholder="Должность, квалификация">${t.role}</textarea>
+                    <input type="text" id="teacher_category_${idx}" value="${t.category}" placeholder="Категория / предмет">
+                </div>
+                <button onclick="deleteTeacher(${idx})" class="delete-card-btn"><i class="fas fa-trash"></i> Удалить</button>
+            </div>
+        `).join('');
+    }
+    
+    function uploadTeacherPhoto(idx, input) {
+        if (input.files && input.files[0]) {
+            readFileAsDataURL(input.files[0], (dataUrl) => {
+                teachers[idx].photoData = dataUrl;
+                teachers[idx].photoUrl = "";
+                renderAdminTeachers();
+            });
+        }
+    }
+    
+    function addNewTeacher() {
+        teachers.push({ id: Date.now(), name: "Новый педагог", role: "Должность", category: "Предмет", photoData: null, photoUrl: "" });
+        renderAdminTeachers();
+    }
+    
+    function deleteTeacher(idx) {
+        if (confirm('Удалить педагога?')) {
+            teachers.splice(idx, 1);
+            renderAdminTeachers();
+        }
+    }
+    
+    function saveAllTeachers() {
+        for (let i = 0; i < teachers.length; i++) {
+            const nameInput = document.getElementById(`teacher_name_${i}`);
+            if (nameInput) {
+                teachers[i].name = nameInput.value;
+                teachers[i].role = document.getElementById(`teacher_role_${i}`).value;
+                teachers[i].category = document.getElementById(`teacher_category_${i}`).value;
+            }
+        }
+        saveTeachers();
+        renderAll();
+        alert('Педагоги сохранены!');
+    }
+    
+    // Админка мероприятий
+    function renderAdminEvents() {
+        const container = document.getElementById('adminEventsList');
+        container.innerHTML = events.map((e, idx) => `
+            <div class="admin-event-card">
+                <div class="admin-event-row">
+                    <input type="text" id="event_name_${idx}" value="${e.name.replace(/"/g, '&quot;')}" placeholder="Название">
+                    <select id="event_type_${idx}">
+                        <option value="olympiad" ${e.type === 'olympiad' ? 'selected' : ''}>🏆 Олимпиада</option>
+                        <option value="conference" ${e.type === 'conference' ? 'selected' : ''}>📄 Конкурс/Конференция</option>
+                    </select>
+                </div>
+                <div class="admin-event-row">
+                    <input type="text" id="event_month_${idx}" value="${e.month}" placeholder="Месяц">
+                    <input type="text" id="event_place_${idx}" value="${e.place}" placeholder="Место проведения">
+                </div>
+                <div class="admin-event-row">
+                    <input type="text" id="event_classes_${idx}" value="${e.classes}" placeholder="Классы">
+                    <input type="date" id="event_deadline_${idx}" value="${e.deadline}">
+                </div>
+                <input type="text" id="event_organizer_${idx}" value="${e.organizer}" placeholder="Организатор">
+                <input type="text" id="event_link_${idx}" value="${e.link}" placeholder="Ссылка на положение">
+                <button onclick="deleteEvent(${idx})" class="delete-card-btn" style="margin-top:10px;"><i class="fas fa-trash"></i> Удалить</button>
+            </div>
+        `).join('');
+    }
+    
+    function addNewEvent() {
+        events.push({ id: Date.now(), month: "Новый месяц", name: "Новое мероприятие", type: "conference", place: "Место проведения", classes: "5-11 классы", deadline: "2025-12-31", organizer: "Организатор", link: "#" });
+        renderAdminEvents();
+    }
+    
+    function deleteEvent(idx) {
+        if (confirm('Удалить мероприятие?')) {
+            events.splice(idx, 1);
+            renderAdminEvents();
+        }
+    }
+    
+    function saveAllEvents() {
+        for (let i = 0; i < events.length; i++) {
+            const nameInput = document.getElementById(`event_name_${i}`);
+            if (nameInput) {
+                events[i].name = nameInput.value;
+                events[i].type = document.getElementById(`event_type_${i}`).value;
+                events[i].month = document.getElementById(`event_month_${i}`).value;
+                events[i].place = document.getElementById(`event_place_${i}`).value;
+                events[i].classes = document.getElementById(`event_classes_${i}`).value;
+                events[i].deadline = document.getElementById(`event_deadline_${i}`).value;
+                events[i].organizer = document.getElementById(`event_organizer_${i}`).value;
+                events[i].link = document.getElementById(`event_link_${i}`).value;
+            }
+        }
+        saveEvents();
+        renderAll();
+        alert('Мероприятия сохранены!');
+    }
+    
+    function saveAbout() {
+        siteData.about = document.getElementById('editAbout').value;
+        saveSiteData();
+        renderAll();
+        alert('Описание сохранено!');
+    }
+    
+    function changePassword() {
+        const newPwd = document.getElementById('newPassword').value;
+        if (newPwd && newPwd.length >= 4) {
+            adminPassword = newPwd;
+            localStorage.setItem('adminPassword', adminPassword);
+            alert('Пароль изменен! Новый пароль: ' + newPwd);
+            document.getElementById('newPassword').value = '';
+        } else {
+            alert('Минимум 4 символа');
+        }
+    }
+    
+    function getCountdown(deadlineDate) {
+        const deadline = new Date(deadlineDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diff = deadline - today;
+        if (diff < 0) return { text: "⏰ Срок подачи истек", expired: true };
+        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        const word = days % 10 === 1 && days % 100 !== 11 ? "день" : (days % 10 >= 2 && days % 10 <= 4 && (days % 100 < 10 || days % 100 >= 20) ? "дня" : "дней");
+        return { text: `⏳ Осталось ${days} ${word}`, expired: false };
+    }
+    
+    function toggleEvent(idx) {
+        const el = document.getElementById(`event-details-${idx}`);
+        if (el) el.classList.toggle('active');
+    }
+    
+    function renderAll() {
+        document.getElementById('aboutText').innerHTML = siteData.about;
+        document.getElementById('heroDesc').innerHTML = siteData.about.replace(/<[^>]*>/g, '').substring(0, 100) + '...';
+        document.getElementById('contactInfo').innerHTML = siteData.contacts;
+        
+        // Педагоги
+        document.getElementById('teachersGrid').innerHTML = teachers.map(t => {
+            const photoHtml = t.photoData ? `<img src="${t.photoData}" class="teacher-photo">` : 
+                              `<div class="teacher-photo-placeholder"><i class="fas fa-user-graduate"></i></div>`;
+            return `<div class="card">${photoHtml}<h3>${t.name}</h3><p>${t.role}</p><span class="teacher-category">${t.category}</span></div>`;
+        }).join('');
+        
+        // База знаний
+        document.getElementById('knowledgeGrid').innerHTML = `
+            <div class="card"><div class="card-icon"><i class="fas fa-rocket"></i></div><h3>${siteData.knowledgeLeft.title}</h3><p>${siteData.knowledgeLeft.content}</p></div>
+            <div class="card"><div class="card-icon"><i class="fas fa-book"></i></div><h3>${siteData.knowledgeRight.title}</h3><p>${siteData.knowledgeRight.content}</p></div>
+        `;
+        
+        // Мероприятия
+        document.getElementById('eventsGrid').innerHTML = events.map((e, idx) => {
+            const countdown = getCountdown(e.deadline);
+            return `
+                <div class="event-card">
+                    <div class="event-header" onclick="toggleEvent(${idx})">
+                        <div>
+                            <div class="event-title">${e.name}</div>
+                            <div class="event-month">📅 ${e.month}</div>
+                        </div>
+                        <span class="event-badge ${e.type === 'olympiad' ? 'badge-olympiad' : 'badge-conference'}">
+                            ${e.type === 'olympiad' ? '🏆 Олимпиада' : '📄 Конкурс/Конф.'}
+                        </span>
+                    </div>
+                    <div class="event-details" id="event-details-${idx}">
+                        <div class="detail-row"><div class="detail-label">📍 Место:</div><div class="detail-value">${e.place}</div></div>
+                        <div class="detail-row"><div class="detail-label">👥 Классы:</div><div class="detail-value">${e.classes}</div></div>
+                        <div class="detail-row"><div class="detail-label">📋 Организатор:</div><div class="detail-value">${e.organizer}</div></div>
+                        <div class="detail-row"><div class="detail-label">📅 Срок заявки:</div><div class="detail-value">${e.deadline}</div></div>
+                        <div class="countdown ${countdown.expired ? 'expired' : ''}">${countdown.text}</div>
+                        ${e.link && e.link !== '#' ? `<a href="${e.link}" target="_blank" class="event-link"><i class="fas fa-file-alt"></i> Положение конференции</a>` : '<span style="color:#94a3b8;"><i class="fas fa-file-alt"></i> Положение будет добавлено позже</span>'}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    window.toggleEvent = toggleEvent;
+    window.openLogin = openLogin;
+    window.checkLogin = checkLogin;
+    window.logout = logout;
+    window.openAdminModal = openAdminModal;
+    window.closeAdminModal = closeAdminModal;
+    window.switchTab = switchTab;
+    window.addNewTeacher = addNewTeacher;
+    window.deleteTeacher = deleteTeacher;
+    window.saveAllTeachers = saveAllTeachers;
+    window.uploadTeacherPhoto = uploadTeacherPhoto;
+    window.addNewEvent = addNewEvent;
+    window.deleteEvent = deleteEvent;
+    window.saveAllEvents = saveAllEvents;
+    window.saveAbout = saveAbout;
+    window.changePassword = changePassword;
+    
+    loadData();
+</script>
+</body>
+</html>
